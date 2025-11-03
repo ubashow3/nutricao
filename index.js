@@ -8,11 +8,13 @@ const formatAnswersForPrompt = (answers) => {
 };
 
 const analyzeAnswers = async (answers) => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+  const apiKey = sessionStorage.getItem('gemini-api-key');
+
+  if (!apiKey) {
+    throw new Error("API_KEY_MISSING");
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   const formattedAnswers = formatAnswersForPrompt(answers);
   const prompt = `
     Você é um assistente de nutrição para a nutricionista Camila Sorroche.
@@ -38,7 +40,7 @@ const analyzeAnswers = async (answers) => {
     return response.text;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    return "Ocorreu um erro ao analisar suas respostas. Por favor, tente novamente mais tarde.";
+    throw new Error("API call failed");
   }
 };
 
@@ -79,6 +81,10 @@ let confirmPhone;
 let restartButton;
 let errorMessageContainer;
 let logoContainers;
+let apiKeyModal;
+let apiKeyInput;
+let saveApiKeyButton;
+let apiKeyError;
 
 
 // --- UI Functions ---
@@ -207,6 +213,14 @@ const handleNextStep = async () => {
         currentStep++;
         renderCurrentQuestion();
     } else {
+        const apiKey = sessionStorage.getItem('gemini-api-key');
+        if (!apiKey) {
+            apiKeyError.textContent = 'Sua API Key é necessária para ver a análise.';
+            apiKeyError.classList.remove('hidden');
+            apiKeyModal.classList.remove('hidden');
+            return;
+        }
+
         showPage('analyzing-page');
         errorMessageContainer.classList.add('hidden');
         try {
@@ -214,7 +228,7 @@ const handleNextStep = async () => {
             analysisResultContainer.innerHTML = parseMarkdown(result);
             showPage('results-page');
         } catch(e) {
-            errorMessageContainer.textContent = 'Falha ao analisar os dados. Por favor, tente novamente.';
+            errorMessageContainer.textContent = 'Falha ao analisar os dados. Verifique se sua API Key é válida ou tente novamente mais tarde.';
             errorMessageContainer.classList.remove('hidden');
             showPage('questionnaire-page');
         }
@@ -314,6 +328,10 @@ const init = () => {
     confirmPhone = document.getElementById('confirm-phone');
     restartButton = document.getElementById('restart-button');
     errorMessageContainer = document.getElementById('error-message-container');
+    apiKeyModal = document.getElementById('api-key-modal');
+    apiKeyInput = document.getElementById('api-key-input');
+    saveApiKeyButton = document.getElementById('save-api-key-button');
+    apiKeyError = document.getElementById('api-key-error');
     logoContainers = {
         'home-page': document.getElementById('logo-home'),
         'questionnaire-page': document.getElementById('logo-questionnaire'),
@@ -323,6 +341,23 @@ const init = () => {
     };
 
     renderLogos();
+
+    // API Key Check
+    if (!sessionStorage.getItem('gemini-api-key')) {
+        apiKeyModal.classList.remove('hidden');
+    }
+    
+    saveApiKeyButton.addEventListener('click', () => {
+        const key = apiKeyInput.value;
+        if (!key || !key.trim()) {
+            apiKeyError.textContent = 'Por favor, insira uma API Key válida.';
+            apiKeyError.classList.remove('hidden');
+        } else {
+            sessionStorage.setItem('gemini-api-key', key.trim());
+            apiKeyError.classList.add('hidden');
+            apiKeyModal.classList.add('hidden');
+        }
+    });
 
     startButton.addEventListener('click', () => {
         showPage('questionnaire-page');
