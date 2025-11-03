@@ -260,7 +260,11 @@ const updateUIWithBusinessInfo = () => {
     contactHours.textContent = `Segunda a Sexta: ${businessInfo.openTime} - ${businessInfo.closeTime}`;
     const formattedPhone = `(${businessInfo.phone.substring(0, 2)}) ${businessInfo.phone.substring(2, 7)}-${businessInfo.phone.substring(7)}`;
     contactWhatsappNumber.textContent = formattedPhone;
-    contactWhatsapp.href = `https://wa.me/55${businessInfo.phone}`;
+    
+    const directContactMessage = "Contato feito pelo aplicativo: Camila Sorroche\nNutricionista";
+    const encodedDirectMessage = encodeURIComponent(directContactMessage);
+    contactWhatsapp.href = `https://wa.me/55${businessInfo.phone}?text=${encodedDirectMessage}`;
+    
     contactAddress1.textContent = businessInfo.address1;
     contactAddress2.textContent = businessInfo.address2;
     contactMaps.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessInfo.address1 + ', ' + businessInfo.address2)}`;
@@ -310,8 +314,7 @@ const saveBusinessInfo = async (e) => {
     try {
         const docRef = doc(db, "siteInfo", "contact");
         await setDoc(docRef, newInfo);
-        businessInfo = newInfo;
-        updateUIWithBusinessInfo();
+        await loadBusinessInfo(); // Re-fetch from DB to ensure UI is in sync
         closeSettingsModal();
     } catch (error) {
         console.error("Error saving info to Firebase:", error);
