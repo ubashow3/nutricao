@@ -21,12 +21,12 @@
       }
     </style>
     <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0"
-  }
-}
-</script>
+      {
+        "imports": {
+          "@google/genai": "https://esm.run/@google/genai"
+        }
+      }
+    </script>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-800">
     <div id="app-container">
@@ -175,27 +175,7 @@
             </div>
         </section>
     </div>
-
-    <!-- API Key Modal -->
-    <div id="api-key-modal" class="fixed hidden inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">API Key Necessária</h2>
-            <p class="mb-4 text-gray-600">Para gerar sua análise personalizada, esta aplicação precisa de uma API Key do Google AI Studio.</p>
-            <p class="mb-2 text-gray-600">Sua chave é armazenada <strong class="font-semibold">apenas no seu navegador</strong> e não é compartilhada.</p>
-            <div>
-                <label for="api-key-input" class="block text-sm font-medium text-gray-700">Sua Google AI API Key</label>
-                <input type="password" id="api-key-input" placeholder="Cole sua chave aqui" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                <p id="api-key-error" class="text-red-500 text-xs mt-1 hidden"></p>
-            </div>
-            <div class="mt-6">
-                 <button id="save-api-key-button" class="w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-full shadow-md hover:bg-emerald-700 transition-colors duration-300">Salvar e Continuar</button>
-            </div>
-             <p class="text-xs text-gray-500 text-center mt-4">
-                Não tem uma chave? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:underline">Obtenha uma aqui.</a>
-            </p>
-        </div>
-    </div>
-
+    
     <script type="module" src="./index.js"></script>
 </body>
 </html>

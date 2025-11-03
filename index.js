@@ -1,51 +1,47 @@
 import { GoogleGenAI } from "@google/genai";
 
-// --- Gemini Service ---
-const formatAnswersForPrompt = (answers) => {
-  return Object.entries(answers)
-    .map(([key, value]) => `- ${key}: ${value}`)
-    .join('\n');
-};
+// --- Gemini API Logic ---
+const API_KEY = 'AIzaSyACYVw9kqe2Q9HNyaOEQdNe_nItM5tfMm4';
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const analyzeAnswers = async (answers) => {
-  const apiKey = sessionStorage.getItem('gemini-api-key');
+    try {
+        const prompt = `
+            Você é a Camila Sorroche, uma nutricionista gentil, empática e encorajadora. 
+            Analise as seguintes respostas de um pré-questionário de um potencial paciente e forneça uma análise preliminar curta e motivadora.
 
-  if (!apiKey) {
-    throw new Error("API_KEY_MISSING");
-  }
+            Sua resposta deve seguir ESTRITAMENTE o seguinte formato:
+            1.  Um título "### Pontos Positivos", seguido de um parágrafo curto e encorajador, elogiando a iniciativa da pessoa.
+            2.  Um título "### Oportunidades de Melhoria", seguido por dois ou três pontos principais (usando "- " no início de cada um) sobre áreas que podem ser melhoradas, com base nas respostas.
+            3.  Uma chamada para ação final, convidando a pessoa a agendar uma consulta para criar um plano personalizado. Seja calorosa e acolhedora.
+            4.  Use o formato Markdown para os títulos (com ###) e para os pontos (com -).
 
-  const ai = new GoogleGenAI({ apiKey: apiKey });
-  const formattedAnswers = formatAnswersForPrompt(answers);
-  const prompt = `
-    Você é um assistente de nutrição para a nutricionista Camila Sorroche.
-    Um cliente em potencial preencheu o seguinte questionário sobre seus hábitos.
-    Sua tarefa é fornecer uma análise preliminar, amigável e encorajadora com base nas respostas.
-    **Instruções:**
-    1. Analise as respostas de forma holística. O tom deve ser positivo e acolhedor.
-    2. Destaque 1 ou 2 pontos positivos nos hábitos do cliente para começar de forma encorajadora.
-    3. Identifique 2 ou 3 áreas principais que poderiam ser melhoradas (por exemplo, hidratação, qualidade do sono, consumo de vegetais, estresse).
-    4. NÃO forneça um plano de dieta ou conselhos médicos específicos. O objetivo é despertar o interesse para uma consulta completa, não resolver o problema aqui.
-    5. Formate a resposta usando markdown para melhor legibilidade, com títulos para seções como "Pontos Positivos" e "Oportunidades de Melhoria".
-    6. Termine com um parágrafo caloroso e convidativo, incentivando o cliente a agendar uma consulta com Camila Sorroche para criar um plano personalizado e detalhado. Use uma linguagem como "Este é um ótimo ponto de partida!" e "Na nossa consulta, podemos aprofundar nesses pontos e criar um plano alimentar que se encaixe perfeitamente na sua rotina e objetivos.".
-    **Respostas do Questionário:**
-    ${formattedAnswers}
-    Por favor, gere a análise.
-  `;
+            Respostas do Questionário:
+            ${JSON.stringify(answers, null, 2)}
 
-  try {
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    throw new Error("API call failed");
-  }
+            Seja breve, positiva e foque em criar uma conexão, não em dar um diagnóstico completo.
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        
+        return response.text;
+
+    } catch (error) {
+        console.error("Erro ao analisar as respostas:", error);
+        return `
+            ### Ocorreu um Erro
+            Não foi possível processar sua análise no momento. Isso pode ser devido a um problema com a chave de API ou com a conexão.
+            
+            Por favor, tente novamente mais tarde. Se o problema persistir, o desenvolvedor do site deve verificar a configuração da API Key.
+        `;
+    }
 };
 
-// --- App Logic ---
 
+// --- App Logic ---
 const questions = [
   { id: 'Objetivo Principal', text: 'Qual é o seu principal objetivo ao procurar uma nutricionista?', type: 'radio', options: ['Perder peso', 'Ganhar massa muscular', 'Melhorar a saúde geral', 'Aprender a comer melhor', 'Outro'] },
   { id: 'Consumo de Água', text: 'Quantos copos de água (200ml) você bebe por dia, em média?', type: 'radio', options: ['Menos de 4', '4 a 6', '7 a 9', '10 ou mais'] },
@@ -81,11 +77,6 @@ let confirmPhone;
 let restartButton;
 let errorMessageContainer;
 let logoContainers;
-let apiKeyModal;
-let apiKeyInput;
-let saveApiKeyButton;
-let apiKeyError;
-
 
 // --- UI Functions ---
 
@@ -133,25 +124,34 @@ const updateProgressBar = () => {
 
 const parseMarkdown = (text) => {
     if (!text) return '';
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .map(line => {
-            if (line.startsWith('- ')) {
-                return `<li class="ml-5 list-disc">${line.substring(2)}</li>`;
+    let html = text
+        .replace(/###\s(.*?)(?:\n|$)/g, '<h3 class="font-semibold text-lg mt-4 mb-2 text-emerald-700">$1</h3>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    const lines = html.split('\n').filter(line => line.trim() !== '');
+    let listOpen = false;
+    
+    html = lines.map(line => {
+        if (line.startsWith('- ')) {
+            if (!listOpen) {
+                listOpen = true;
+                return `<ul class="list-disc pl-5 space-y-2">${line.replace('- ', '<li class="text-gray-700">')}</li>`;
             }
-            if (/^#{1,6}\s/.test(line)) {
-                const level = line.match(/^#+/)?.[0].length || 1;
-                const content = line.replace(/^#{1,6}\s/, '');
-                const headingLevel = Math.min(level + 2, 6);
-                const tag = `h${headingLevel}`;
-                return `<${tag} class="font-semibold text-lg mt-4 mb-2 text-emerald-700">${content}</${tag}>`;
+            return line.replace('- ', '<li class="text-gray-700">') + '</li>';
+        } else {
+            if (listOpen) {
+                listOpen = false;
+                return `</ul>${line.startsWith('<h3') ? line : `<p class="mb-4">${line}</p>`}`;
             }
-            return `<p class="mb-4">${line}</p>`;
-        }).join('');
+            return line.startsWith('<h3') ? line : `<p class="mb-4">${line}</p>`;
+        }
+    }).join('');
+
+    if (listOpen) {
+        html += '</ul>';
+    }
+
+    return html;
 };
 
 
@@ -213,25 +213,10 @@ const handleNextStep = async () => {
         currentStep++;
         renderCurrentQuestion();
     } else {
-        const apiKey = sessionStorage.getItem('gemini-api-key');
-        if (!apiKey) {
-            apiKeyError.textContent = 'Sua API Key é necessária para ver a análise.';
-            apiKeyError.classList.remove('hidden');
-            apiKeyModal.classList.remove('hidden');
-            return;
-        }
-
         showPage('analyzing-page');
-        errorMessageContainer.classList.add('hidden');
-        try {
-            const result = await analyzeAnswers(answers);
-            analysisResultContainer.innerHTML = parseMarkdown(result);
-            showPage('results-page');
-        } catch(e) {
-            errorMessageContainer.textContent = 'Falha ao analisar os dados. Verifique se sua API Key é válida ou tente novamente mais tarde.';
-            errorMessageContainer.classList.remove('hidden');
-            showPage('questionnaire-page');
-        }
+        const result = await analyzeAnswers(answers);
+        analysisResultContainer.innerHTML = parseMarkdown(result);
+        showPage('results-page');
     }
 };
 
@@ -328,10 +313,7 @@ const init = () => {
     confirmPhone = document.getElementById('confirm-phone');
     restartButton = document.getElementById('restart-button');
     errorMessageContainer = document.getElementById('error-message-container');
-    apiKeyModal = document.getElementById('api-key-modal');
-    apiKeyInput = document.getElementById('api-key-input');
-    saveApiKeyButton = document.getElementById('save-api-key-button');
-    apiKeyError = document.getElementById('api-key-error');
+
     logoContainers = {
         'home-page': document.getElementById('logo-home'),
         'questionnaire-page': document.getElementById('logo-questionnaire'),
@@ -341,24 +323,7 @@ const init = () => {
     };
 
     renderLogos();
-
-    // API Key Check
-    if (!sessionStorage.getItem('gemini-api-key')) {
-        apiKeyModal.classList.remove('hidden');
-    }
     
-    saveApiKeyButton.addEventListener('click', () => {
-        const key = apiKeyInput.value;
-        if (!key || !key.trim()) {
-            apiKeyError.textContent = 'Por favor, insira uma API Key válida.';
-            apiKeyError.classList.remove('hidden');
-        } else {
-            sessionStorage.setItem('gemini-api-key', key.trim());
-            apiKeyError.classList.add('hidden');
-            apiKeyModal.classList.add('hidden');
-        }
-    });
-
     startButton.addEventListener('click', () => {
         showPage('questionnaire-page');
         renderCurrentQuestion();
