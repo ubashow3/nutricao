@@ -28,7 +28,32 @@
       }
     </script>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800">
+<body class="bg-gray-50 min-h-screen text-gray-800 transition-colors duration-300">
+
+    <header class="fixed top-0 right-0 p-4 z-40">
+        <div class="relative">
+            <!-- Settings Gear Icon -->
+            <button id="settings-button" class="text-gray-500 hover:text-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-gear-fill" viewBox="0 0 16 16">
+                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311a1.464 1.464 0 0 1-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c-1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+                </svg>
+            </button>
+            
+            <!-- Password Card -->
+            <div id="password-card" class="hidden absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-xl p-4 z-50 border border-gray-200">
+                <p class="font-semibold text-sm text-gray-700 mb-2">Acesso Restrito</p>
+                <form id="password-form">
+                    <label for="password-input" class="sr-only">Senha</label>
+                    <input type="password" id="password-input" placeholder="Senha" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <p id="password-error" class="text-red-500 text-xs mt-1 hidden">Senha incorreta.</p>
+                    <button type="submit" class="w-full mt-3 bg-emerald-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-emerald-700 transition">
+                        Ir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
     <div id="app-container">
 
         <!-- Home Page -->
@@ -121,17 +146,12 @@
                         <form id="registration-form" class="space-y-4" novalidate>
                             <div>
                                 <label for="name" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                                <input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                                <input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-white text-gray-900">
                                 <p id="name-error" class="text-red-500 text-xs mt-1 hidden"></p>
                             </div>
                             <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700">E-mail</label>
-                                <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                                <p id="email-error" class="text-red-500 text-xs mt-1 hidden"></p>
-                            </div>
-                            <div>
                                 <label for="phone" class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label>
-                                <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                                <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-white text-gray-900">
                                 <p id="phone-error" class="text-red-500 text-xs mt-1 hidden"></p>
                             </div>
                             <div class="pt-4">
@@ -140,7 +160,37 @@
                                 </button>
                             </div>
                         </form>
-                        <p class="text-xs text-gray-500 text-center mt-4">
+
+                        <div class="my-6 border-t border-gray-200"></div>
+
+                        <div class="text-center text-sm text-gray-600 space-y-4">
+                            <div class="text-center">
+                                <p class="font-semibold text-gray-700">Horário de Atendimento</p>
+                                <p id="contact-hours">Segunda a Sexta: 09:00 - 18:00</p>
+                                <div class="mt-2 text-base">
+                                    <span class="font-bold">Status:</span>
+                                    <span id="status-indicator" class="font-bold px-2 py-1 rounded-md"></span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-700">Prefere falar diretamente?</p>
+                                <a id="contact-whatsapp" href="https://wa.me/5512997389147" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center text-emerald-600 hover:text-emerald-800 transition-colors duration-200 mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp mr-2" viewBox="0 0 16 16">
+                                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                                    </svg>
+                                    <span id="contact-whatsapp-number">(12) 99738-9147</span>
+                                </a>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-700">Nosso consultório</p>
+                                <a id="contact-maps" href="https://www.google.com/maps/search/?api=1&query=Av.+Prof.+Bernadino+Querido,+761+-+sala+3+-+Itaguá,+Ubatuba+-+SP,+11680-000,+Brasil" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-800">
+                                    <p id="contact-address1">Av. Prof. Bernadino Querido, 761 - sala 3</p>
+                                    <p id="contact-address2">Itaguá, Ubatuba - SP, 11680-000</p>
+                                </a>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-500 text-center mt-6">
                             Entraremos em contato em breve para confirmar a data e horário da sua consulta.
                         </p>
                     </div>
@@ -158,11 +208,10 @@
                     </svg>
                     <h1 id="confirmation-heading" class="text-3xl font-bold text-emerald-800 mb-3"></h1>
                     <p class="text-gray-600 text-lg mb-6">
-                        Seu pedido de agendamento foi recebido. Em breve, nossa equipe entrará em contato com você pelo telefone ou e-mail fornecido para confirmar os detalhes da sua consulta.
+                        Seu pedido de agendamento foi recebido. Em breve, nossa equipe entrará em contato com você pelo telefone fornecido para confirmar os detalhes da sua consulta.
                     </p>
                     <div class="bg-gray-100 p-4 rounded-lg text-left text-sm text-gray-700 mb-8">
                         <p><strong>Nome:</strong> <span id="confirm-name"></span></p>
-                        <p><strong>E-mail:</strong> <span id="confirm-email"></span></p>
                         <p><strong>Telefone:</strong> <span id="confirm-phone"></span></p>
                     </div>
                     <p class="text-gray-600 mb-8">
@@ -174,6 +223,41 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow-xl">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Configurações</h2>
+            <form id="settings-form" class="space-y-4">
+                <div>
+                    <label for="settings-phone" class="block text-sm font-medium text-gray-700">Telefone WhatsApp (somente números)</label>
+                    <input type="text" id="settings-phone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div>
+                    <label for="settings-address1" class="block text-sm font-medium text-gray-700">Endereço (Linha 1)</label>
+                    <input type="text" id="settings-address1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                 <div>
+                    <label for="settings-address2" class="block text-sm font-medium text-gray-700">Endereço (Linha 2)</label>
+                    <input type="text" id="settings-address2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="settings-open" class="block text-sm font-medium text-gray-700">Horário Abertura</label>
+                        <input type="time" id="settings-open" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label for="settings-close" class="block text-sm font-medium text-gray-700">Horário Fechamento</label>
+                        <input type="time" id="settings-close" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancel-settings-button" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200">Cancelar</button>
+                    <button type="submit" id="save-settings-button" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-md hover:bg-emerald-700">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
     
     <script type="module" src="./index.js"></script>

@@ -11,7 +11,7 @@ const analyzeAnswers = async (answers) => {
             Analise as seguintes respostas de um pré-questionário de um potencial paciente e forneça uma análise preliminar curta e motivadora.
 
             Sua resposta deve seguir ESTRITAMENTE o seguinte formato:
-            1.  Um título "### Pontos Positivos", seguido de um parágrafo curto e encorajador, elogiando a iniciativa da pessoa.
+            1.  Um título "### Pontos Positivos", seguido de um paragrafo curto e encorajador, elogiando a iniciativa da pessoa.
             2.  Um título "### Oportunidades de Melhoria", seguido por dois ou três pontos principais (usando "- " no início de cada um) sobre áreas que podem ser melhoradas, com base nas respostas.
             3.  Uma chamada para ação final, convidando a pessoa a agendar uma consulta para criar um plano personalizado. Seja calorosa e acolhedora.
             4.  Use o formato Markdown para os títulos (com ###) e para os pontos (com -).
@@ -58,6 +58,17 @@ const questions = [
 let currentStep = 0;
 let answers = {};
 let userData = {};
+let businessInfo = {};
+
+// Default Business Info
+const defaultInfo = {
+    phone: '12997389147',
+    address1: 'Av. Prof. Bernadino Querido, 761 - sala 3',
+    address2: 'Itaguá, Ubatuba - SP, 11680-000',
+    openTime: '09:00',
+    closeTime: '18:00',
+};
+
 
 // DOM Elements - Declared here, assigned in init()
 let pages;
@@ -70,13 +81,28 @@ let nextButton;
 let scheduleButton;
 let analysisResultContainer;
 let registrationForm;
+let phoneInput;
 let confirmationHeading;
 let confirmName;
-let confirmEmail;
 let confirmPhone;
 let restartButton;
 let errorMessageContainer;
 let logoContainers;
+let statusIndicator;
+// Settings Elements
+let settingsButton;
+let settingsModal;
+let settingsForm;
+let saveSettingsButton;
+let cancelSettingsButton;
+let settingsPhone, settingsAddress1, settingsAddress2, settingsOpen, settingsClose;
+// Password Card Elements
+let passwordCard;
+let passwordForm;
+let passwordInput;
+let passwordError;
+// Contact Info Elements
+let contactHours, contactWhatsapp, contactWhatsappNumber, contactMaps, contactAddress1, contactAddress2;
 
 // --- UI Functions ---
 
@@ -162,13 +188,13 @@ const renderCurrentQuestion = () => {
     
     if (question.type === 'radio' && question.options) {
         const optionsHtml = question.options.map(option => `
-            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-emerald-50 transition-colors">
+            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 transition-colors">
                 <input
                     type="radio"
                     name="${question.id}"
                     value="${option}"
                     ${answers[question.id] === option ? 'checked' : ''}
-                    class="h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300"
+                    class="h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 bg-transparent"
                 />
                 <span class="ml-4 text-gray-700 text-lg">${option}</span>
             </label>
@@ -179,7 +205,7 @@ const renderCurrentQuestion = () => {
             <textarea
                 id="textarea-input"
                 rows="5"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition bg-white text-gray-900"
                 placeholder="Digite aqui..."
             >${answers[question.id] || ''}</textarea>
         `;
@@ -190,6 +216,96 @@ const renderCurrentQuestion = () => {
     nextButton.disabled = !answers[question.id];
     nextButton.textContent = currentStep === questions.length - 1 ? 'Ver Análise' : 'Próximo';
 };
+
+const updateBusinessStatus = () => {
+    if (!statusIndicator) return;
+
+    const now = new Date();
+    const day = now.getDay(); // Sunday = 0, Monday = 1, etc.
+    const currentTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    const [openHour, openMinute] = businessInfo.openTime.split(':').map(Number);
+    const [closeHour, closeMinute] = businessInfo.closeTime.split(':').map(Number);
+
+    const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
+    const openTotalMinutes = openHour * 60 + openMinute;
+    const closeTotalMinutes = closeHour * 60 + closeMinute;
+
+    const isOpen = day >= 1 && day <= 5 && nowTotalMinutes >= openTotalMinutes && nowTotalMinutes < closeTotalMinutes;
+
+    if (isOpen) {
+        statusIndicator.textContent = 'Aberto';
+        statusIndicator.classList.add('text-green-500');
+        statusIndicator.classList.remove('text-red-500');
+    } else {
+        statusIndicator.textContent = 'Fechado';
+        statusIndicator.classList.add('text-red-500');
+        statusIndicator.classList.remove('text-green-500');
+    }
+};
+
+// --- Settings Functions ---
+
+const loadBusinessInfo = () => {
+    const storedInfo = localStorage.getItem('businessInfo');
+    businessInfo = storedInfo ? JSON.parse(storedInfo) : defaultInfo;
+
+    // Update contact info on the page
+    contactHours.textContent = `Segunda a Sexta: ${businessInfo.openTime} - ${businessInfo.closeTime}`;
+    const formattedPhone = `(${businessInfo.phone.substring(0, 2)}) ${businessInfo.phone.substring(2, 7)}-${businessInfo.phone.substring(7)}`;
+    contactWhatsappNumber.textContent = formattedPhone;
+    contactWhatsapp.href = `https://wa.me/55${businessInfo.phone}`;
+    contactAddress1.textContent = businessInfo.address1;
+    contactAddress2.textContent = businessInfo.address2;
+    contactMaps.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessInfo.address1 + ', ' + businessInfo.address2)}`;
+
+    // Populate settings form
+    settingsPhone.value = businessInfo.phone;
+    settingsAddress1.value = businessInfo.address1;
+    settingsAddress2.value = businessInfo.address2;
+    settingsOpen.value = businessInfo.openTime;
+    settingsClose.value = businessInfo.closeTime;
+
+    updateBusinessStatus();
+};
+
+const saveBusinessInfo = (e) => {
+    e.preventDefault();
+    const newInfo = {
+        phone: settingsPhone.value.replace(/\D/g, ''),
+        address1: settingsAddress1.value,
+        address2: settingsAddress2.value,
+        openTime: settingsOpen.value,
+        closeTime: settingsClose.value,
+    };
+    localStorage.setItem('businessInfo', JSON.stringify(newInfo));
+    loadBusinessInfo(); // Reload to update UI
+    closeSettingsModal();
+};
+
+const openSettingsModal = () => settingsModal.classList.remove('hidden');
+const closeSettingsModal = () => {
+    settingsModal.classList.add('hidden');
+    // Also hide the password card for a clean state
+    passwordCard.classList.add('hidden');
+    passwordError.classList.add('hidden');
+    passwordInput.value = '';
+};
+
+
+const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (passwordInput.value === 'pudim') {
+        passwordCard.classList.add('hidden');
+        passwordInput.value = '';
+        passwordError.classList.add('hidden');
+        openSettingsModal();
+    } else {
+        passwordError.classList.remove('hidden');
+        passwordInput.value = '';
+    }
+};
+
 
 // --- Event Handlers ---
 
@@ -227,11 +343,26 @@ const handlePrevStep = () => {
     }
 };
 
+const handlePhoneInput = (e) => {
+    const input = e.target;
+    let value = input.value.replace(/\D/g, ''); // Remove non-numeric
+    value = value.substring(0, 11); // Limit length
+
+    // Apply mask (##) #####-####
+    if (value.length > 7) {
+        value = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7, 11)}`;
+    } else if (value.length > 2) {
+        value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+    } else if (value.length > 0) {
+        value = `(${value}`;
+    }
+    input.value = value;
+};
+
+
 const handleRegistrationSubmit = (e) => {
     e.preventDefault();
     const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const phoneInput = document.getElementById('phone');
     
     let isValid = true;
     document.querySelectorAll('[id$="-error"]').forEach(el => {
@@ -246,19 +377,8 @@ const handleRegistrationSubmit = (e) => {
         if (nameInput) nameInput.classList.add('border-red-500');
         isValid = false;
     }
-    if (!emailInput || !emailInput.value.trim()) {
-        document.getElementById('email-error').textContent = 'E-mail é obrigatório';
-        document.getElementById('email-error').classList.remove('hidden');
-        if (emailInput) emailInput.classList.add('border-red-500');
-        isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(emailInput.value)) {
-        document.getElementById('email-error').textContent = 'Formato de e-mail inválido';
-        document.getElementById('email-error').classList.remove('hidden');
-        if (emailInput) emailInput.classList.add('border-red-500');
-        isValid = false;
-    }
-    if (!phoneInput || !phoneInput.value.trim()) {
-        document.getElementById('phone-error').textContent = 'Telefone é obrigatório';
+    if (!phoneInput || !phoneInput.value.trim() || phoneInput.value.replace(/\D/g, '').length < 10) {
+        document.getElementById('phone-error').textContent = 'Telefone inválido';
         document.getElementById('phone-error').classList.remove('hidden');
         if (phoneInput) phoneInput.classList.add('border-red-500');
         isValid = false;
@@ -267,13 +387,11 @@ const handleRegistrationSubmit = (e) => {
     if (isValid) {
         userData = {
             name: nameInput.value,
-            email: emailInput.value,
             phone: phoneInput.value,
         };
         const firstName = userData.name ? userData.name.split(' ')[0] : '';
         confirmationHeading.textContent = `Tudo certo, ${firstName}!`;
         confirmName.textContent = userData.name || '';
-        confirmEmail.textContent = userData.email || '';
         confirmPhone.textContent = userData.phone || '';
         showPage('confirmation-page');
     }
@@ -307,12 +425,39 @@ const init = () => {
     scheduleButton = document.getElementById('schedule-button');
     analysisResultContainer = document.getElementById('analysis-result');
     registrationForm = document.getElementById('registration-form');
+    phoneInput = document.getElementById('phone');
     confirmationHeading = document.getElementById('confirmation-heading');
     confirmName = document.getElementById('confirm-name');
-    confirmEmail = document.getElementById('confirm-email');
     confirmPhone = document.getElementById('confirm-phone');
     restartButton = document.getElementById('restart-button');
     errorMessageContainer = document.getElementById('error-message-container');
+    statusIndicator = document.getElementById('status-indicator');
+    
+    // Settings Elements
+    settingsButton = document.getElementById('settings-button');
+    settingsModal = document.getElementById('settings-modal');
+    settingsForm = document.getElementById('settings-form');
+    saveSettingsButton = document.getElementById('save-settings-button');
+    cancelSettingsButton = document.getElementById('cancel-settings-button');
+    settingsPhone = document.getElementById('settings-phone');
+    settingsAddress1 = document.getElementById('settings-address1');
+    settingsAddress2 = document.getElementById('settings-address2');
+    settingsOpen = document.getElementById('settings-open');
+    settingsClose = document.getElementById('settings-close');
+
+    // Password Card Elements
+    passwordCard = document.getElementById('password-card');
+    passwordForm = document.getElementById('password-form');
+    passwordInput = document.getElementById('password-input');
+    passwordError = document.getElementById('password-error');
+
+    // Contact Info Elements
+    contactHours = document.getElementById('contact-hours');
+    contactWhatsapp = document.getElementById('contact-whatsapp');
+    contactWhatsappNumber = document.getElementById('contact-whatsapp-number');
+    contactMaps = document.getElementById('contact-maps');
+    contactAddress1 = document.getElementById('contact-address1');
+    contactAddress2 = document.getElementById('contact-address2');
 
     logoContainers = {
         'home-page': document.getElementById('logo-home'),
@@ -324,6 +469,15 @@ const init = () => {
 
     renderLogos();
     
+    // Settings Trigger
+    settingsButton.addEventListener('click', () => {
+        passwordCard.classList.toggle('hidden');
+        if (!passwordCard.classList.contains('hidden')) {
+            passwordInput.focus();
+        }
+    });
+    passwordForm.addEventListener('submit', handlePasswordSubmit);
+
     startButton.addEventListener('click', () => {
         showPage('questionnaire-page');
         renderCurrentQuestion();
@@ -337,7 +491,18 @@ const init = () => {
 
     scheduleButton.addEventListener('click', () => showPage('registration-page'));
     registrationForm.addEventListener('submit', handleRegistrationSubmit);
+    phoneInput.addEventListener('input', handlePhoneInput);
     restartButton.addEventListener('click', handleRestart);
+    
+    // Settings listeners
+    settingsForm.addEventListener('submit', saveBusinessInfo);
+    cancelSettingsButton.addEventListener('click', closeSettingsModal);
+    settingsPhone.addEventListener('input', handlePhoneInput);
+
+
+    // Load dynamic info and set initial business status
+    loadBusinessInfo();
+    setInterval(updateBusinessStatus, 60000); // Update status every minute
 
     showPage('home-page'); // Start on home page
 };
