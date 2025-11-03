@@ -33,7 +33,7 @@
     <header class="fixed top-0 right-0 p-4 z-40">
         <div class="relative">
             <!-- Settings Gear Icon -->
-            <button id="settings-button" class="text-gray-500 hover:text-gray-700 transition">
+            <button id="settings-button" class="text-gray-400 opacity-50 hover:text-gray-600 hover:opacity-100 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-gear-fill" viewBox="0 0 16 16">
                     <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311a1.464 1.464 0 0 1-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c-1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
                 </svg>
@@ -203,21 +203,20 @@
             <div class="min-h-screen bg-emerald-50 flex flex-col items-center justify-center text-center p-4">
                 <div class="bg-white p-8 sm:p-12 rounded-xl shadow-lg max-w-lg w-full">
                     <div class="flex justify-center mb-6" id="logo-confirmation"></div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-emerald-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-emerald-500 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                     </svg>
-                    <h1 id="confirmation-heading" class="text-3xl font-bold text-emerald-800 mb-3"></h1>
-                    <p class="text-gray-600 text-lg mb-6">
-                        Seu pedido de agendamento foi recebido. Em breve, nossa equipe entrará em contato com você pelo telefone fornecido para confirmar os detalhes da sua consulta.
+                    <h1 class="text-3xl font-bold text-emerald-800 mb-3">Último Passo!</h1>
+                    <p class="text-gray-600 text-lg mb-8">
+                        Seus dados foram salvos. Por favor, clique no botão abaixo para enviar a notificação para a nutricionista via WhatsApp e confirmar seu interesse.
                     </p>
-                    <div class="bg-gray-100 p-4 rounded-lg text-left text-sm text-gray-700 mb-8">
-                        <p><strong>Nome:</strong> <span id="confirm-name"></span></p>
-                        <p><strong>Telefone:</strong> <span id="confirm-phone"></span></p>
-                    </div>
-                    <p class="text-gray-600 mb-8">
-                        Estou ansiosa para começarmos juntos essa jornada de transformação!
-                    </p>
-                    <button id="restart-button" class="text-emerald-600 font-semibold hover:text-emerald-800 transition">
+                    <button id="send-whatsapp-button" class="bg-green-500 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg hover:bg-green-600 transition-transform transform hover:scale-105 duration-300 ease-in-out inline-flex items-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-whatsapp mr-3" viewBox="0 0 16 16">
+                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                        </svg>
+                        Enviar Notificação por WhatsApp
+                    </button>
+                    <button id="restart-button" class="mt-8 text-emerald-600 font-semibold hover:text-emerald-800 transition">
                         Voltar para o Início
                     </button>
                 </div>

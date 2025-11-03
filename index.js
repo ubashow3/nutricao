@@ -82,10 +82,8 @@ let scheduleButton;
 let analysisResultContainer;
 let registrationForm;
 let phoneInput;
-let confirmationHeading;
-let confirmName;
-let confirmPhone;
 let restartButton;
+let sendWhatsappButton;
 let errorMessageContainer;
 let logoContainers;
 let statusIndicator;
@@ -386,15 +384,21 @@ const handleRegistrationSubmit = (e) => {
 
     if (isValid) {
         userData = {
-            name: nameInput.value,
+            name: nameInput.value.trim(),
             phone: phoneInput.value,
         };
-        const firstName = userData.name ? userData.name.split(' ')[0] : '';
-        confirmationHeading.textContent = `Tudo certo, ${firstName}!`;
-        confirmName.textContent = userData.name || '';
-        confirmPhone.textContent = userData.phone || '';
         showPage('confirmation-page');
     }
+};
+
+const handleSendWhatsapp = () => {
+    const nutritionistPhone = businessInfo.phone;
+    const message = `Olá, Camila! Meu nome é ${userData.name}. Preenchi o questionário no seu site e gostaria de agendar uma consulta. (Meu contato: ${userData.phone})`;
+    const encodedMessage = encodeURIComponent(message);
+    
+    const whatsappUrl = `https://wa.me/55${nutritionistPhone}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 };
 
 const handleRestart = () => {
@@ -426,10 +430,8 @@ const init = () => {
     analysisResultContainer = document.getElementById('analysis-result');
     registrationForm = document.getElementById('registration-form');
     phoneInput = document.getElementById('phone');
-    confirmationHeading = document.getElementById('confirmation-heading');
-    confirmName = document.getElementById('confirm-name');
-    confirmPhone = document.getElementById('confirm-phone');
     restartButton = document.getElementById('restart-button');
+    sendWhatsappButton = document.getElementById('send-whatsapp-button');
     errorMessageContainer = document.getElementById('error-message-container');
     statusIndicator = document.getElementById('status-indicator');
     
@@ -493,6 +495,7 @@ const init = () => {
     registrationForm.addEventListener('submit', handleRegistrationSubmit);
     phoneInput.addEventListener('input', handlePhoneInput);
     restartButton.addEventListener('click', handleRestart);
+    sendWhatsappButton.addEventListener('click', handleSendWhatsapp);
     
     // Settings listeners
     settingsForm.addEventListener('submit', saveBusinessInfo);
