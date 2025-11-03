@@ -1,4 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBy0jI56V4mibouFl5SE7U8T43L8QWtEsQ",
+    authDomain: "estacionamento-76f48.firebaseapp.com",
+    projectId: "estacionamento-76f48",
+    storageBucket: "estacionamento-76f48.firebasestorage.app",
+    messagingSenderId: "801132134529",
+    appId: "1:801132134529:web:33884badf61afcab604d80"
+};
 
 // --- Gemini API Logic ---
 const API_KEY = 'AIzaSyACYVw9kqe2Q9HNyaOEQdNe_nItM5tfMm4';
@@ -59,8 +71,9 @@ let currentStep = 0;
 let answers = {};
 let userData = {};
 let businessInfo = {};
+let db; // Firebase DB instance
 
-// Default Business Info
+// Default Business Info (fallback)
 const defaultInfo = {
     phone: '12997389147',
     address1: 'Av. Prof. Bernadino Querido, 761 - sala 3',
@@ -70,7 +83,7 @@ const defaultInfo = {
 };
 
 
-// DOM Elements - Declared here, assigned in init()
+// DOM Elements
 let pages;
 let startButton;
 let progressBar;
@@ -216,11 +229,10 @@ const renderCurrentQuestion = () => {
 };
 
 const updateBusinessStatus = () => {
-    if (!statusIndicator) return;
+    if (!statusIndicator || !businessInfo.openTime || !businessInfo.closeTime) return;
 
     const now = new Date();
     const day = now.getDay(); // Sunday = 0, Monday = 1, etc.
-    const currentTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
 
     const [openHour, openMinute] = businessInfo.openTime.split(':').map(Number);
     const [closeHour, closeMinute] = businessInfo.closeTime.split(':').map(Number);
@@ -242,13 +254,9 @@ const updateBusinessStatus = () => {
     }
 };
 
-// --- Settings Functions ---
+// --- Settings & Firebase Functions ---
 
-const loadBusinessInfo = () => {
-    const storedInfo = localStorage.getItem('businessInfo');
-    businessInfo = storedInfo ? JSON.parse(storedInfo) : defaultInfo;
-
-    // Update contact info on the page
+const updateUIWithBusinessInfo = () => {
     contactHours.textContent = `Segunda a Sexta: ${businessInfo.openTime} - ${businessInfo.closeTime}`;
     const formattedPhone = `(${businessInfo.phone.substring(0, 2)}) ${businessInfo.phone.substring(2, 7)}-${businessInfo.phone.substring(7)}`;
     contactWhatsappNumber.textContent = formattedPhone;
@@ -257,7 +265,6 @@ const loadBusinessInfo = () => {
     contactAddress2.textContent = businessInfo.address2;
     contactMaps.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessInfo.address1 + ', ' + businessInfo.address2)}`;
 
-    // Populate settings form
     settingsPhone.value = businessInfo.phone;
     settingsAddress1.value = businessInfo.address1;
     settingsAddress2.value = businessInfo.address2;
@@ -267,8 +274,31 @@ const loadBusinessInfo = () => {
     updateBusinessStatus();
 };
 
-const saveBusinessInfo = (e) => {
+
+const loadBusinessInfo = async () => {
+    try {
+        const docRef = doc(db, "siteInfo", "contact");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            businessInfo = docSnap.data();
+        } else {
+            console.log("No such document! Creating one with defaults.");
+            businessInfo = defaultInfo;
+            await setDoc(doc(db, "siteInfo", "contact"), defaultInfo);
+        }
+    } catch (error) {
+        console.error("Error loading info from Firebase, using defaults.", error);
+        businessInfo = defaultInfo;
+    }
+    updateUIWithBusinessInfo();
+};
+
+const saveBusinessInfo = async (e) => {
     e.preventDefault();
+    saveSettingsButton.disabled = true;
+    saveSettingsButton.textContent = 'Salvando...';
+
     const newInfo = {
         phone: settingsPhone.value.replace(/\D/g, ''),
         address1: settingsAddress1.value,
@@ -276,20 +306,29 @@ const saveBusinessInfo = (e) => {
         openTime: settingsOpen.value,
         closeTime: settingsClose.value,
     };
-    localStorage.setItem('businessInfo', JSON.stringify(newInfo));
-    loadBusinessInfo(); // Reload to update UI
-    closeSettingsModal();
+
+    try {
+        const docRef = doc(db, "siteInfo", "contact");
+        await setDoc(docRef, newInfo);
+        businessInfo = newInfo;
+        updateUIWithBusinessInfo();
+        closeSettingsModal();
+    } catch (error) {
+        console.error("Error saving info to Firebase:", error);
+        alert("Falha ao salvar as configurações. Verifique o console para mais detalhes.");
+    } finally {
+        saveSettingsButton.disabled = false;
+        saveSettingsButton.textContent = 'Salvar';
+    }
 };
 
 const openSettingsModal = () => settingsModal.classList.remove('hidden');
 const closeSettingsModal = () => {
     settingsModal.classList.add('hidden');
-    // Also hide the password card for a clean state
     passwordCard.classList.add('hidden');
     passwordError.classList.add('hidden');
     passwordInput.value = '';
 };
-
 
 const handlePasswordSubmit = (e) => {
     e.preventDefault();
@@ -417,7 +456,11 @@ const handleRestart = () => {
 };
 
 // --- Initialization ---
-const init = () => {
+const init = async () => {
+    // Initialize Firebase
+    const firebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(firebaseApp);
+
     // Assign DOM elements now that the DOM is loaded
     pages = document.querySelectorAll('.page');
     startButton = document.getElementById('start-button');
@@ -502,9 +545,8 @@ const init = () => {
     cancelSettingsButton.addEventListener('click', closeSettingsModal);
     settingsPhone.addEventListener('input', handlePhoneInput);
 
-
     // Load dynamic info and set initial business status
-    loadBusinessInfo();
+    await loadBusinessInfo();
     setInterval(updateBusinessStatus, 60000); // Update status every minute
 
     showPage('home-page'); // Start on home page
