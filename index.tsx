@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 // --- Gemini Service ---
@@ -57,35 +56,35 @@ const questions = [
   { id: 'Comentários Adicionais', text: 'Há algo mais que você gostaria de compartilhar sobre seus hábitos ou saúde?', type: 'textarea' }
 ];
 
+// State
+let currentStep = 0;
+let answers = {};
+// FIX: Define an interface for UserData and type the userData variable to avoid property access errors on an empty object.
 interface UserData {
     name: string;
     email: string;
     phone: string;
 }
-
-// State
-let currentStep = 0;
-let answers = {};
 let userData: Partial<UserData> = {};
 
 // DOM Elements - Declared here, assigned in init()
-let pages: NodeListOf<HTMLElement>;
-let startButton: HTMLElement;
-let progressBar: HTMLElement;
-let questionText: HTMLElement;
-let questionOptionsContainer: HTMLElement;
-let prevButton: HTMLButtonElement;
-let nextButton: HTMLButtonElement;
-let scheduleButton: HTMLElement;
-let analysisResultContainer: HTMLElement;
-let registrationForm: HTMLFormElement;
-let confirmationHeading: HTMLElement;
-let confirmName: HTMLElement;
-let confirmEmail: HTMLElement;
-let confirmPhone: HTMLElement;
-let restartButton: HTMLElement;
-let errorMessageContainer: HTMLElement;
-let logoContainers: { [key: string]: HTMLElement };
+let pages;
+let startButton;
+let progressBar;
+let questionText;
+let questionOptionsContainer;
+let prevButton;
+let nextButton;
+let scheduleButton;
+let analysisResultContainer;
+let registrationForm;
+let confirmationHeading;
+let confirmName;
+let confirmEmail;
+let confirmPhone;
+let restartButton;
+let errorMessageContainer;
+let logoContainers;
 
 
 // --- UI Functions ---
@@ -196,7 +195,7 @@ const renderCurrentQuestion = () => {
 const handleAnswerChange = (e) => {
     const question = questions[currentStep];
     let value;
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const target = e.target;
     if (target.type === 'radio' || target.type === 'textarea') {
        value = target.value;
     }
@@ -235,6 +234,7 @@ const handlePrevStep = () => {
 
 const handleRegistrationSubmit = (e) => {
     e.preventDefault();
+    // FIX: Cast elements to HTMLInputElement to access their 'value' property.
     const nameInput = document.getElementById('name') as HTMLInputElement;
     const emailInput = document.getElementById('email') as HTMLInputElement;
     const phoneInput = document.getElementById('phone') as HTMLInputElement;
@@ -300,11 +300,11 @@ const init = () => {
     progressBar = document.getElementById('progress-bar');
     questionText = document.getElementById('question-text');
     questionOptionsContainer = document.getElementById('question-options');
-    prevButton = document.getElementById('prev-button') as HTMLButtonElement;
-    nextButton = document.getElementById('next-button') as HTMLButtonElement;
+    prevButton = document.getElementById('prev-button');
+    nextButton = document.getElementById('next-button');
     scheduleButton = document.getElementById('schedule-button');
     analysisResultContainer = document.getElementById('analysis-result');
-    registrationForm = document.getElementById('registration-form') as HTMLFormElement;
+    registrationForm = document.getElementById('registration-form');
     confirmationHeading = document.getElementById('confirmation-heading');
     confirmName = document.getElementById('confirm-name');
     confirmEmail = document.getElementById('confirm-email');
