@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 // --- Gemini Service ---
@@ -56,7 +57,6 @@ const questions = [
   { id: 'Comentários Adicionais', text: 'Há algo mais que você gostaria de compartilhar sobre seus hábitos ou saúde?', type: 'textarea' }
 ];
 
-// FIX: Define UserData interface to properly type user data object.
 interface UserData {
     name: string;
     email: string;
@@ -66,37 +66,27 @@ interface UserData {
 // State
 let currentStep = 0;
 let answers = {};
-// FIX: Use Partial<UserData> to avoid property access errors on an empty object.
 let userData: Partial<UserData> = {};
 
-// DOM Elements
-const pages = document.querySelectorAll('.page');
-const startButton = document.getElementById('start-button');
-const progressBar = document.getElementById('progress-bar');
-const questionText = document.getElementById('question-text');
-const questionOptionsContainer = document.getElementById('question-options');
-// FIX: Cast to HTMLButtonElement to access 'disabled' property.
-const prevButton = document.getElementById('prev-button') as HTMLButtonElement;
-// FIX: Cast to HTMLButtonElement to access 'disabled' property.
-const nextButton = document.getElementById('next-button') as HTMLButtonElement;
-const scheduleButton = document.getElementById('schedule-button');
-const analysisResultContainer = document.getElementById('analysis-result');
-// FIX: Cast to HTMLFormElement to access 'reset' method.
-const registrationForm = document.getElementById('registration-form') as HTMLFormElement;
-const confirmationHeading = document.getElementById('confirmation-heading');
-const confirmName = document.getElementById('confirm-name');
-const confirmEmail = document.getElementById('confirm-email');
-const confirmPhone = document.getElementById('confirm-phone');
-const restartButton = document.getElementById('restart-button');
-const errorMessageContainer = document.getElementById('error-message-container');
+// DOM Elements - Declared here, assigned in init()
+let pages: NodeListOf<HTMLElement>;
+let startButton: HTMLElement;
+let progressBar: HTMLElement;
+let questionText: HTMLElement;
+let questionOptionsContainer: HTMLElement;
+let prevButton: HTMLButtonElement;
+let nextButton: HTMLButtonElement;
+let scheduleButton: HTMLElement;
+let analysisResultContainer: HTMLElement;
+let registrationForm: HTMLFormElement;
+let confirmationHeading: HTMLElement;
+let confirmName: HTMLElement;
+let confirmEmail: HTMLElement;
+let confirmPhone: HTMLElement;
+let restartButton: HTMLElement;
+let errorMessageContainer: HTMLElement;
+let logoContainers: { [key: string]: HTMLElement };
 
-const logoContainers = {
-    'home-page': document.getElementById('logo-home'),
-    'questionnaire-page': document.getElementById('logo-questionnaire'),
-    'results-page': document.getElementById('logo-results'),
-    'registration-page': document.getElementById('logo-registration'),
-    'confirmation-page': document.getElementById('logo-confirmation'),
-};
 
 // --- UI Functions ---
 
@@ -245,7 +235,6 @@ const handlePrevStep = () => {
 
 const handleRegistrationSubmit = (e) => {
     e.preventDefault();
-    // FIX: Cast to HTMLInputElement to access 'value' property.
     const nameInput = document.getElementById('name') as HTMLInputElement;
     const emailInput = document.getElementById('email') as HTMLInputElement;
     const phoneInput = document.getElementById('phone') as HTMLInputElement;
@@ -287,7 +276,6 @@ const handleRegistrationSubmit = (e) => {
             email: emailInput.value,
             phone: phoneInput.value,
         };
-        // FIX: Use optional chaining and nullish coalescing to prevent errors on potentially undefined properties.
         confirmationHeading.textContent = `Tudo certo, ${userData.name?.split(' ')[0]}!`;
         confirmName.textContent = userData.name ?? '';
         confirmEmail.textContent = userData.email ?? '';
@@ -306,6 +294,31 @@ const handleRestart = () => {
 
 // --- Initialization ---
 const init = () => {
+    // Assign DOM elements now that the DOM is loaded
+    pages = document.querySelectorAll('.page');
+    startButton = document.getElementById('start-button');
+    progressBar = document.getElementById('progress-bar');
+    questionText = document.getElementById('question-text');
+    questionOptionsContainer = document.getElementById('question-options');
+    prevButton = document.getElementById('prev-button') as HTMLButtonElement;
+    nextButton = document.getElementById('next-button') as HTMLButtonElement;
+    scheduleButton = document.getElementById('schedule-button');
+    analysisResultContainer = document.getElementById('analysis-result');
+    registrationForm = document.getElementById('registration-form') as HTMLFormElement;
+    confirmationHeading = document.getElementById('confirmation-heading');
+    confirmName = document.getElementById('confirm-name');
+    confirmEmail = document.getElementById('confirm-email');
+    confirmPhone = document.getElementById('confirm-phone');
+    restartButton = document.getElementById('restart-button');
+    errorMessageContainer = document.getElementById('error-message-container');
+    logoContainers = {
+        'home-page': document.getElementById('logo-home'),
+        'questionnaire-page': document.getElementById('logo-questionnaire'),
+        'results-page': document.getElementById('logo-results'),
+        'registration-page': document.getElementById('logo-registration'),
+        'confirmation-page': document.getElementById('logo-confirmation'),
+    };
+
     renderLogos();
 
     startButton.addEventListener('click', () => {
