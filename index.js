@@ -1,5 +1,6 @@
 
 
+
 import { GoogleGenAI } from "@google/genai";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
@@ -100,7 +101,6 @@ let phoneInput;
 let restartButton;
 let sendWhatsappButton;
 let errorMessageContainer;
-let logoContainers;
 let statusIndicator;
 // Settings Elements
 let settingsButton;
@@ -118,27 +118,6 @@ let passwordError;
 let contactHours, contactWhatsapp, contactWhatsappNumber, contactMaps, contactAddress1, contactAddress2;
 
 // --- UI Functions ---
-
-const getLogoHTML = (sizeClass = 'h-40') => {
-    const imageUrl = "img/logo.jpg";
-    return `
-    <div>
-      <img 
-        src="${imageUrl}"
-        alt="Camila Sorroche Nutrição Esportiva"
-        class="${sizeClass} w-auto object-contain"
-      />
-    </div>
-  `;
-};
-
-const renderLogos = () => {
-    logoContainers['home-page'].innerHTML = getLogoHTML('h-80');
-    logoContainers['questionnaire-page'].innerHTML = getLogoHTML('h-40');
-    logoContainers['results-page'].innerHTML = getLogoHTML('h-40');
-    logoContainers['registration-page'].innerHTML = getLogoHTML('h-40');
-    logoContainers['confirmation-page'].innerHTML = getLogoHTML('h-40');
-};
 
 const showPage = (pageId) => {
     pages.forEach(page => {
@@ -504,16 +483,6 @@ const init = async () => {
     contactMaps = document.getElementById('contact-maps');
     contactAddress1 = document.getElementById('contact-address1');
     contactAddress2 = document.getElementById('contact-address2');
-
-    logoContainers = {
-        'home-page': document.getElementById('logo-home'),
-        'questionnaire-page': document.getElementById('logo-questionnaire'),
-        'results-page': document.getElementById('logo-results'),
-        'registration-page': document.getElementById('logo-registration'),
-        'confirmation-page': document.getElementById('logo-confirmation'),
-    };
-
-    renderLogos();
     
     // Settings Trigger
     settingsButton.addEventListener('click', () => {
